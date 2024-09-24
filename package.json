@@ -1,0 +1,19 @@
+{
+  "name": "notesbackend",
+  "version": "1.0.0",
+  "description": "part3 exercises",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Dixser/notesBackend.git"
+  },
+  "author": "Dani Ortiz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dixser/notesBackend/issues"
+  },
+  "homepage": "https://github.com/Dixser/notesBackend#readme"
+}
