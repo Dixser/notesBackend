@@ -1,9 +1,11 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 
 app.use(express.json())
 app.use(morgan('tiny'))
+app.use(cors())
 
 let persons = [
   {
@@ -28,7 +30,7 @@ let persons = [
   },
 ]
 
-app.get('/', app.use(morgan('tiny')), (request, response) => {
+app.get('/', (request, response) => {
   response.send('<h1>Phone Agenda</h1>')
 })
 
