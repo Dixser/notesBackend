@@ -1,12 +1,30 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
 
+const mongoose = require('mongoose')
+
+const Person = require('./models/person')
+
 app.use(express.json())
 app.use(morgan('tiny'))
 app.use(cors())
 app.use(express.static('dist'))
+
+const password = process.argv[2]
+
+// DO NOT SAVE YOUR PASSWORD TO GITHUB!!
+const url = process.env.MONGODB_URI
+
+mongoose.set('strictQuery', false)
+mongoose.connect(url)
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+})
 
 let persons = [
   {
@@ -36,18 +54,15 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then((person) => {
+    response.json(person)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find((person) => person.id === id)
-
-  if (person) {
+  Person.findById(request.params.id).then((person) => {
     response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  })
 })
 
 app.get('/api/info', (request, response) => {
@@ -89,22 +104,25 @@ app.post('/api/persons', morgan(':date :test'), (request, response) => {
     })
   }
 
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  }
+  })
 
-  persons = persons.concat(person)
+  person.save().then((savedPerson) => {
+    response.json(savedPerson)
+  })
 
-  response.json(person)
+  /*   persons = persons.concat(person)
+
+  response.json(person) */
 
   morgan.token('test', function (req, res) {
     return JSON.stringify(req.body)
   })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
