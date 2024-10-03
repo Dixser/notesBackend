@@ -13,8 +13,7 @@ app.use(morgan('tiny'))
 app.use(cors())
 app.use(express.static('dist'))
 
-const password = process.argv[2]
-
+console.log(process.env);
 
 const url = process.env.MONGODB_URI
 
