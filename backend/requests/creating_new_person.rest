@@ -5,6 +5,14 @@ POST http://localhost:3001/api/persons/ HTTP/1.1
 content-type: application/json
 
 {
-    "name": "sample",
-    "number": "123"
+    "name": "TEST",
+    "number": "123-123456"
+}
+###
+PUT http://localhost:3001/api/persons/66fc3abd4630568c0851c4c0 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Dani",
+    "number": "123-1234567"
 }

@@ -25,9 +25,8 @@ mongoose
     console.log('error connecting to MongoDB:', error.message)
   })
 
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+morgan.token('test', function (req, res) {
+  return JSON.stringify(req.body)
 })
 
 app.get('/', (request, response) => {
@@ -93,40 +92,40 @@ const generateId = () => {
 app.post('/api/persons', morgan(':date :test'), (request, response, next) => {
   const body = request.body
 
-  if (!body.name) {
-    return response.status(400).json({
-      error: 'name missing',
-    })
+  if (body.name === undefined) {
+    return response
+      .status(400)
+      .json({
+        error: 'Error: name missing',
+      })
+      .end()
   }
-  if (!body.number) {
+  if (body.number === undefined) {
     return response.status(400).json({
-      error: 'number missing',
+      error: 'Error: number missing',
     })
   }
 
   let found = false
-  Person.find({ name: body.name }).then(
-    console.log(`${body.name} found in database`),
-    (found = true),
-    response.status(400).end()
-  )
-
-  if (!found) {
-    const person = new Person({
-      name: body.name,
-      number: body.number,
-    })
-
-    person
-      .save()
-      .then((savedPerson) => {
-        response.json(savedPerson)
+  Person.find({ name: body.name }).then((person) => {
+    if (person.length === 0) {
+      const person = new Person({
+        name: body.name,
+        number: body.number,
       })
-      .catch((error) => next(error))
-  }
 
-  morgan.token('test', function (req, res) {
-    return JSON.stringify(req.body)
+      person
+        .save()
+        .then((savedPerson) => {
+          response.json(savedPerson)
+        })
+        .catch((error) => next(error))
+    } else {
+      return response
+        .status(400)
+        .json({ error: `Error: ${body.name} is already on the database` })
+        .end()
+    }
   })
 })
 
@@ -138,6 +137,7 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
 app.use(unknownEndpoint)
+
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
@@ -150,3 +150,4 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 app.use(errorHandler)
+

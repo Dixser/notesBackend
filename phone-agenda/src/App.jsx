@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"
-import { Filter } from "./Filter.jsx"
-import { PersonForm } from "./PersonForm.jsx"
-import { Persons } from "./Persons.jsx"
+import { useState, useEffect } from 'react'
+import { Filter } from './Filter.jsx'
+import { PersonForm } from './PersonForm.jsx'
+import { Persons } from './Persons.jsx'
 import './index.css'
 
-import phoneService from "./services/phones.js"
+import phoneService from './services/phones.js'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -15,16 +15,18 @@ const App = () => {
     { name: "Mary Poppendieck", number: "39-23-6423122", id: 4 },
   ]) */
 
-  const [newName, setNewName] = useState("")
-  const [newNumber, setNewNumber] = useState("")
-  const [filter, setFilter] = useState("")
+  const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
+  const [filter, setFilter] = useState('')
   const [errorMessage, setErrorMessage] = useState(null)
 
   const Notification = ({ message }) => {
     if (message === null) {
       return null
     }
-    const className = message.toLowerCase().includes("error") ? "error" : "success"
+    const className = !message || message.toLowerCase().includes('error') || message.toLowerCase().includes('failed') 
+      ? 'error'
+      : 'success'
 
     return <div className={className}>{message}</div>
   }
@@ -37,23 +39,24 @@ const App = () => {
 
   const deletePhone = (id, name) => {
     if (window.confirm(`Confirm removing ${name} from the list?`)) {
-      phoneService.deletePhone(id).then(() => {
-        setPersons(persons.filter((n) => n.id !== id))
-        setErrorMessage(
-          `'${name}' was removed from the phonebook.`
-        )
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-      }).catch((error) => {
-        setErrorMessage(
-          `Error: '${name}' was already removed from server.`
-        )
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-        setPersons(persons.filter((n) => n.id !== id))
-      })
+      phoneService
+        .deletePhone(id)
+        .then(() => {
+          setPersons(persons.filter((n) => n.id !== id))
+          setErrorMessage(`'${name}' was removed from the phonebook.`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+        })
+        .catch((error) => {
+          console.log(error)
+          
+          setErrorMessage(error)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+          setPersons(persons.filter((n) => n.id !== id))
+        })
     }
   }
 
@@ -79,21 +82,20 @@ const App = () => {
                 person.id !== changedPhone.id ? person : changedPhone
               )
             )
-            setErrorMessage(
-              `'${changedPhone.name}' was updated.`
-            )
+            setErrorMessage(`'${changedPhone.name}' was updated.`)
             setTimeout(() => {
               setErrorMessage(null)
             }, 5000)
           })
           .catch((error) => {
             setErrorMessage(
-              `Error: '${changedPhone.name}' was already removed from server.`
+              error.response.data.error
+              /* `Error: '${changedPhone.name}' was already removed from server.` */
             )
             setTimeout(() => {
               setErrorMessage(null)
             }, 5000)
-            setPersons(persons.filter((n) => n.id !== changedPhone.id))
+            //setPersons(persons.filter((n) => n.id !== changedPhone.id))
           })
       }
     } else {
@@ -102,16 +104,20 @@ const App = () => {
         number: newNumber,
         id: (persons.length + 1).toString(),
       }
-      phoneService.create(newPhone).then((response) => {
-        setPersons(persons.concat(newPhone))
-        console.log(response)
-        setErrorMessage(
-          `'${newName}' was added to the phonebook.`
-        )
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-      })
+      phoneService
+        .create(newPhone)
+        .then((response) => {
+          setPersons(persons.concat(newPhone))
+          console.log(response)
+          setErrorMessage(`'${newName}' was added to the phonebook.`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+        })
+        .catch((error) => {
+          console.log(error.response.data.error)
+          setErrorMessage(error.response.data.error)
+        })
     }
   }
 
@@ -129,7 +135,7 @@ const App = () => {
     setFilter(newFilter)
   }
   const filteredPersons =
-    filter === ""
+    filter === ''
       ? persons
       : persons.filter((person) => person.name.includes(filter))
   return (
